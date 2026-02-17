@@ -2136,7 +2136,7 @@ def check_setra(N, e_abs, t, sigma0, B, V=0, phi_frot=27.0):
     phi_rad = math.radians(phi_frot)
     tan_phi = math.tan(phi_rad)
     V_resist = N * tan_phi
-    tau_gliss = abs(V) / V_resist if V_resist > TOLERANCE else 0
+    tau_gliss = abs(V) / V_resist if V_resist > TOLERANCE else (float('inf') if abs(V) > TOLERANCE else 0)
     is_valid_gliss = tau_gliss <= 1.0
     
     # --- Critère d'interaction N-M-T ---
@@ -7713,6 +7713,15 @@ def optimize_H_for_e(data_json, e):
                 // tau_gliss = 20 / 57.7 = 0.347
                 if (tau_gliss > 0.3 && tau_gliss < 0.4) return true;
                 return `τ_gliss=${tau_gliss.toFixed(3)}`;
+            });
+            
+            test('Glissement limite: N=0 et V>0 => τ_gliss infini', () => {
+                const N = 0, V = 10, phi = 30;
+                const tan_phi = Math.tan(phi * Math.PI / 180);
+                const V_resist = N * tan_phi;
+                const tau_gliss = V_resist > 1e-9 ? Math.abs(V) / V_resist : (Math.abs(V) > 1e-9 ? Infinity : 0);
+                if (!Number.isFinite(tau_gliss) && tau_gliss > 0) return true;
+                return `τ_gliss=${tau_gliss} (attendu=Infinity)`;
             });
             
             // ─────────────────────────────────────────────────────────────────────
